@@ -10,26 +10,6 @@ function App() {
   const [characters, setCharacters] = useState([]);
 
   useEffect(() => {
-    const getFilms = async () => {
-      const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/films`, {
-        headers: {
-          apikey: process.env.REACT_APP_SUPABASE_KEY,
-          Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_KEY}`,
-        },
-      });
-      const data = await response.json();
-      const filmArr = data.map((item) => {
-        return [
-          item.title,
-          slugifyName(item.title),
-          item.boxOfficeRevenueInMillions,
-          item.academyAwardNominations,
-        ];
-      });
-      setFilms(filmArr);
-      return [];
-    };
-
     const getCharacters = async () => {
       const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/characters`, {
         headers: {
@@ -47,12 +27,30 @@ function App() {
         }
       });
       setCharacters(characterArr);
-      return [];
+    };
+
+    const getFilms = async () => {
+      const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/films`, {
+        headers: {
+          apikey: process.env.REACT_APP_SUPABASE_KEY,
+          Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_KEY}`,
+        },
+      });
+      const data = await response.json();
+      const filmArr = data.map((item) => {
+        return [
+          item.title,
+          slugifyName(item.title),
+          item.box_office_total,
+          item.academy_award_nominations,
+        ];
+      });
+      setFilms(filmArr);
     };
 
     getFilms();
     getCharacters();
-  }, [characters]);
+  }, []);
 
   //from StackOverflow
   const slugifyName = (str) => {

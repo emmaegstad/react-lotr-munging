@@ -11,16 +11,17 @@ function App() {
 
   useEffect(() => {
     const getFilms = async () => {
-      const response = await fetch('https://the-one-api.dev/v2/movie/', {
+      const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/films`, {
         headers: {
-          Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`,
+          apikey: process.env.REACT_APP_SUPABASE_KEY,
+          Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_KEY}`,
         },
       });
       const data = await response.json();
-      const filmArr = data.docs.map((item) => {
+      const filmArr = data.map((item) => {
         return [
-          item.name,
-          slugifyName(item.name),
+          item.title,
+          slugifyName(item.title),
           item.boxOfficeRevenueInMillions,
           item.academyAwardNominations,
         ];
@@ -30,14 +31,15 @@ function App() {
     };
 
     const getCharacters = async () => {
-      const response = await fetch('https://the-one-api.dev/v2/character/', {
+      const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/characters`, {
         headers: {
-          Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`,
+          apikey: process.env.REACT_APP_SUPABASE_KEY,
+          Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_KEY}`,
         },
       });
       const data = await response.json();
 
-      const characterArr = data.docs.map((item) => {
+      const characterArr = data.map((item) => {
         if (item.birth || item.death) {
           return { ...item, dates: (item.dates = `${item.birth} - ${item.death}`) };
         } else {

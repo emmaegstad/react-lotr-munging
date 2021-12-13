@@ -1,6 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import { BrowserRouter, NavLink } from 'react-router-dom';
+import { BrowserRouter, NavLink, Switch, Route } from 'react-router-dom';
 
 import CharacterList from './components/Characters/CharacterList';
 import FilmList from './components/Films/FilmList';
@@ -10,40 +10,66 @@ function App() {
   const [characters, setCharacters] = useState([]);
 
   useEffect(() => {
+    const getFilms = async () => {
+      const response = await fetch('https://the-one-api.dev/v2/movie/', {
+        headers: {
+          Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`,
+        },
+      });
+      const data = await response.json();
+      const filmArr = data.docs.map((item) => {
+        return [
+          item.name,
+          slugifyName(item.name),
+          item.boxOfficeRevenueInMillions,
+          item.academyAwardNominations,
+        ];
+      });
+      setFilms(filmArr);
+      return [];
+    };
+
+    const getCharacters = async () => {
+      const response = await fetch('https://the-one-api.dev/v2/character/', {
+        headers: {
+          Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`,
+        },
+      });
+      const data = await response.json();
+
+      const characterArr = data.docs.map((item) => {
+        if (item.birth || item.death) {
+          return { ...item, dates: (item.dates = `${item.birth} - ${item.death}`) };
+        } else {
+          return { ...item, dates: 'unknown' };
+        }
+      });
+      setCharacters(characterArr);
+      return [];
+    };
+
     getFilms();
     getCharacters();
-  }, []);
+  }, [characters]);
 
-  const getFilms = async () => {
-    // Add your code here!
-    // 1. Get data using fetch from https://the-one-api.dev/v2/movie/ (don't forget to set your header!)
-    // 2. Transform the response so that films contains nested arrays of:
-    //   - the film's title
-    //   - the film's title "slugified" i.e. in all lower case, with words separated with dashes,
-    //   - the box office total
-    //   - academy award nominations
-    // NOTE: make sure you look at the response from the server - it may not be consistent
-    // [["The Lord of the Rings Series", "the-lord-of-the-rings-series", 2917, 30 ], ["The Hobbit Series", "the-hobit-series", 2932, 7]...]
+  //from StackOverflow
+  const slugifyName = (str) => {
+    str = str.replace(/^\s+|\s+$/g, ''); // trim
+    str = str.toLowerCase();
 
-    // 3. Set the resulting transformation as state using setFilms
-    // 4. You'll know it works if the films show up on the page
-    return [];
-  };
+    // remove accents, swap ñ for n, etc
+    var from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;';
+    var to = 'aaaaeeeeiiiioooouuuunc------';
+    for (var i = 0, l = from.length; i < l; i++) {
+      str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+    }
 
-  const getCharacters = async () => {
-    // Add your code here!
-    // 1. Get data using fetch from https://the-one-api.dev/v2/character/
-    // 2. Update the response data with the key `dates` which is a combination of
-    //    the `birth` key and the `death key` separated with a dash. If neither date
-    //    is provided, it should hold the string 'Unknown'
-    //    [
-    //       {name: 'Adanel', birth: "", death: "", dates: "Unknown", ...},
-    //       {name: 'Adrahil I', birth: "Before , TA 1944", death: "Late , Third Age", dates: "Before , TA 1944 - Late , Third Age", ...},
-    //       {name: 'Adrahil II', birth: "TA 2917", death: "TA 3010, dates: "TA 2917 - TA 3010", ...},
-    //    ]
-    // 3. Set the resulting transformation as state using setCharacters
-    // 4. You'll know it works if the characters show up on the page
-    return [];
+    str = str
+      .replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+      .replace(/\s+/g, '-') // collapse whitespace and replace by -
+      .replace(/-+/g, '-'); // collapse dashes
+
+    return str;
   };
 
   return (
@@ -57,7 +83,15 @@ function App() {
             Characters
           </NavLink>
         </header>
-        {/* ADD YOUR ROUTES HERE */}
+
+        <Switch>
+          <Route path="/characters">
+            <CharacterList characters={characters} />
+          </Route>
+          <Route path="/films">
+            <FilmList films={films} />
+          </Route>
+        </Switch>
       </BrowserRouter>
     </div>
   );
